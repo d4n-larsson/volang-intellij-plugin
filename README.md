@@ -6,6 +6,7 @@ IntelliJ support for [vo](https://github.com/d4n-larsson/volang), a small static
 - Nord colors by default in dark themes (light themes use the IDE's colors)
 - `Ctrl+/` toggles `#` line comments
 - Bracket matching for `()`, `[]`, `{}`, and auto-closing brackets and quotes
+- `Ctrl+click` on a function, record or variant name goes to its declaration, also across `import`s and `vo.packages` packages (not `std`)
 
 Works in IntelliJ-based IDEs 2026.2 and newer.
 
@@ -27,6 +28,7 @@ Then, in the IDE: **Settings → Plugins → ⚙️ → Install Plugin from Disk
 | File | Contents |
 |---|---|
 | `src/main/kotlin/volang/Vo.kt` | `.vo` file type, lexer, highlighter, commenter, brace matcher, quote handler |
+| `src/main/kotlin/volang/VoNavigation.kt` | Go to declaration (`Ctrl+click`) |
 | `src/main/kotlin/volang/VoEffects.kt` | `vo.effects` file type, lexer and highlighter |
 | `src/main/resources/colorSchemes/VoNordDark.xml` | Nord colors for dark themes |
 | `src/main/resources/META-INF/plugin.xml` | Plugin registration |

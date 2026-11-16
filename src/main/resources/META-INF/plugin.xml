@@ -18,5 +18,6 @@
         <lang.commenter language="vo" implementationClass="volang.VoCommenter"/>
         <lang.braceMatcher language="vo" implementationClass="volang.VoBraceMatcher"/>
         <lang.quoteHandler language="vo" implementationClass="volang.VoQuoteHandler"/>
+        <gotoDeclarationHandler implementation="volang.VoGotoDeclarationHandler"/>
     </extensions>
 </idea-plugin>
