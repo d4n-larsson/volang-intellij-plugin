@@ -55,6 +55,12 @@ class VoLexerTest {
         assertEquals(1, l.state)
     }
 
+    @Test fun specAnnotation() = assertEquals(
+        listOf("ANNOTATION:@spec", "LPAREN:(", "STRING:\"FR-003\"", "COMMA:,", "STRING:\"US1/AC2\"", "RPAREN:)",
+            "KEYWORD:test", "STRING:\"adds a note\"", "LBRACE:{"),
+        lex("@spec(\"FR-003\", \"US1/AC2\")\ntest \"adds a note\" {"),
+    )
+
     @Test fun stringsAndComments() = assertEquals(
         listOf("COMMENT:# hi \"x\"", "STRING:\"a\\\"b\\\\\"", "SEMICOLON:;", "STRING:\"open", "IDENT:x", "BAD_CHARACTER:@"),
         lex("# hi \"x\"\n\"a\\\"b\\\\\";\n\"open\nx @"),

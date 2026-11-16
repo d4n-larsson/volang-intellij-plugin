@@ -59,6 +59,7 @@ object VoTokens {
     val LBRACE = VoToken("LBRACE")
     val RBRACE = VoToken("RBRACE")
     val EFFECT = VoToken("EFFECT")      // an effect name in a `uses` clause (and in vo.effects)
+    val ANNOTATION = VoToken("ANNOTATION") // `@spec` (specs/012-spec-annotations); its arguments lex as usual
 
     // docs/reference.md "Lexical rules"
     val KEYWORDS = setOf(
@@ -139,6 +140,7 @@ class VoLexer : LexerBase() {
                     else -> VoTokens.IDENT
                 }
             }
+            c == '@' && at(pos)?.isLetter() == true -> { skip { it.isLetterOrDigit() || it == '_' }; VoTokens.ANNOTATION }
             c in OPS -> { skip { it in OPS }; VoTokens.OPERATOR }
             c == '.' -> VoTokens.DOT
             c == ',' -> VoTokens.COMMA
@@ -188,6 +190,7 @@ class VoSyntaxHighlighter(private val lexer: () -> Lexer = ::VoLexer) : SyntaxHi
         val KEYS = mapOf(
             VoTokens.KEYWORD to key("KEYWORD", C.KEYWORD),
             VoTokens.EFFECT to key("EFFECT", C.METADATA),
+            VoTokens.ANNOTATION to key("ANNOTATION", C.METADATA),
             VoTokens.TYPE to key("TYPE", C.CLASS_NAME),
             VoTokens.FUNCTION to key("FUNCTION", C.FUNCTION_CALL),
             VoTokens.IDENT to key("IDENT", C.IDENTIFIER),
