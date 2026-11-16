@@ -70,6 +70,8 @@ object VoTokens {
     // the effects of docs/reference.md "Effects" (file.read and file.write are two words and a dot)
     val EFFECTS = setOf("console", "input", "file", "read", "write", "net", "clock", "random", "env", "serve")
     val TYPES = setOf("int", "float", "bool", "str", "list", "map", "result", "void")
+    // spec 014: types only in a type position and after `new`, otherwise ordinary names
+    val COLLECTIONS = setOf("ordered_map", "ordered_set", "priority_queue", "deque")
 }
 
 /**
@@ -136,6 +138,9 @@ class VoLexer : LexerBase() {
                 when {
                     word in VoTokens.KEYWORDS -> VoTokens.KEYWORD
                     word in VoTokens.TYPES || c.isUpperCase() -> VoTokens.TYPE
+                    // ponytail: "followed by `[`" stands in for "in a type position", so indexing a variable
+                    // named deque (`deque[0]`) also shows as a type; look back at the previous token if that matters
+                    word in VoTokens.COLLECTIONS && at(pos) == '[' -> VoTokens.TYPE
                     at(pos) == '(' -> VoTokens.FUNCTION
                     else -> VoTokens.IDENT
                 }

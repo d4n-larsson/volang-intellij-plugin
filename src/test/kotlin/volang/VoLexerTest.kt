@@ -61,6 +61,14 @@ class VoLexerTest {
         lex("@spec(\"FR-003\", \"US1/AC2\")\ntest \"adds a note\" {"),
     )
 
+    @Test fun collections() = assertEquals(
+        listOf("KEYWORD:let", "IDENT:q", "OPERATOR::", "TYPE:priority_queue", "LBRACKET:[", "TYPE:int", "RBRACKET:]",
+            "OPERATOR:=", "KEYWORD:new", "TYPE:ordered_map", "LBRACKET:[", "TYPE:str", "COMMA:,", "TYPE:deque",
+            "LBRACKET:[", "TYPE:int", "RBRACKET:]", "RBRACKET:]", "SEMICOLON:;",
+            "KEYWORD:let", "IDENT:deque", "OPERATOR:=", "FUNCTION:ordered_set", "LPAREN:(", "RPAREN:)", "SEMICOLON:;"),
+        lex("let q: priority_queue[int] = new ordered_map[str, deque[int]];\nlet deque = ordered_set();"),
+    )
+
     @Test fun stringsAndComments() = assertEquals(
         listOf("COMMENT:# hi \"x\"", "STRING:\"a\\\"b\\\\\"", "SEMICOLON:;", "STRING:\"open", "IDENT:x", "BAD_CHARACTER:@"),
         lex("# hi \"x\"\n\"a\\\"b\\\\\";\n\"open\nx @"),
