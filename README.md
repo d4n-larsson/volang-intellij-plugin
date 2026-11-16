@@ -1,6 +1,6 @@
 # vo for IntelliJ
 
-IntelliJ support for [vo](../volang), a small statically typed language. 
+IntelliJ support for [vo](https://github.com/d4n-larsson/volang), a small statically typed language. 
 
 - Syntax highlighting for `.vo` source files and the `vo.effects` record
 - Nord colors by default in dark themes (light themes use the IDE's colors)
