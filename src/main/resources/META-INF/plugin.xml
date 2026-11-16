@@ -3,7 +3,7 @@
     <name>vo Language</name>
     <vendor>Dan Larsson</vendor>
     <description><![CDATA[
-        <p>Syntax highlighting for <b>vo</b> (<code>.vo</code>) source files and the <code>vo.effects</code> record.</p>
+        <p>Syntax highlighting for <b>vo</b> (<code>.vo</code>) source files, the <code>vo.effects</code> record and the <code>vo.packages</code> manifest.</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -13,6 +13,8 @@
         <lang.syntaxHighlighterFactory language="vo" implementationClass="volang.VoSyntaxHighlighterFactory"/>
         <fileType name="vo effects" language="vo effects" implementationClass="volang.VoEffectsFileType" fieldName="INSTANCE" fileNames="vo.effects"/>
         <lang.syntaxHighlighterFactory language="vo effects" implementationClass="volang.VoEffectsHighlighterFactory"/>
+        <fileType name="vo packages" language="vo packages" implementationClass="volang.VoPackagesFileType" fieldName="INSTANCE" fileNames="vo.packages"/>
+        <lang.syntaxHighlighterFactory language="vo packages" implementationClass="volang.VoPackagesHighlighterFactory"/>
         <additionalTextAttributes scheme="Darcula" file="colorSchemes/VoNordDark.xml"/>
         <lang.parserDefinition language="vo" implementationClass="volang.VoParserDefinition"/>
         <lang.commenter language="vo" implementationClass="volang.VoCommenter"/>
