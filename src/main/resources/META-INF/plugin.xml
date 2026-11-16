@@ -1,0 +1,22 @@
+<idea-plugin>
+    <id>volang</id>
+    <name>vo Language</name>
+    <vendor>Dan Larsson</vendor>
+    <description><![CDATA[
+        <p>Syntax highlighting for <b>vo</b> (<code>.vo</code>) source files and the <code>vo.effects</code> record.</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="vo" language="vo" implementationClass="volang.VoFileType" fieldName="INSTANCE" extensions="vo"/>
+        <lang.syntaxHighlighterFactory language="vo" implementationClass="volang.VoSyntaxHighlighterFactory"/>
+        <fileType name="vo effects" language="vo effects" implementationClass="volang.VoEffectsFileType" fieldName="INSTANCE" fileNames="vo.effects"/>
+        <lang.syntaxHighlighterFactory language="vo effects" implementationClass="volang.VoEffectsHighlighterFactory"/>
+        <additionalTextAttributes scheme="Darcula" file="colorSchemes/VoNordDark.xml"/>
+        <lang.parserDefinition language="vo" implementationClass="volang.VoParserDefinition"/>
+        <lang.commenter language="vo" implementationClass="volang.VoCommenter"/>
+        <lang.braceMatcher language="vo" implementationClass="volang.VoBraceMatcher"/>
+        <lang.quoteHandler language="vo" implementationClass="volang.VoQuoteHandler"/>
+    </extensions>
+</idea-plugin>
