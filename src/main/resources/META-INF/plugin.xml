@@ -21,5 +21,7 @@
         <lang.braceMatcher language="vo" implementationClass="volang.VoBraceMatcher"/>
         <lang.quoteHandler language="vo" implementationClass="volang.VoQuoteHandler"/>
         <gotoDeclarationHandler implementation="volang.VoGotoDeclarationHandler"/>
+        <lang.documentationProvider language="vo" implementationClass="volang.VoDocumentationProvider"/>
+        <applicationConfigurable parentId="tools" instance="volang.VoConfigurable" id="volang.settings" displayName="vo"/>
     </extensions>
 </idea-plugin>

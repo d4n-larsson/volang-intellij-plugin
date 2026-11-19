@@ -6,7 +6,10 @@ IntelliJ support for [vo](https://github.com/d4n-larsson/volang), a small static
 - Nord colors by default in dark themes (light themes use the IDE's colors)
 - `Ctrl+/` toggles `#` line comments
 - Bracket matching for `()`, `[]`, `{}`, and auto-closing brackets and quotes
-- `Ctrl+click` on a function, record or variant name goes to its declaration, also across `import`s and `vo.packages` packages (not `std`)
+- With the `vo` toolchain (Settings → Tools → vo, or `vo` on the PATH), answers come from `vo query`, so they follow the checker:
+  - `Ctrl+click` on any name (function, record, field, parameter, local) goes to its declaration; on a declaration it lists every use
+  - Hovering a name, `Ctrl`+hover or `Ctrl+Q` shows its type, such as `a: int`
+  - vo reads files from disk, so unsaved vo files are saved first; until then, and without vo or while the program has errors, `Ctrl+click` falls back to finding the `fn`/`record`/`variant` by name, also across `import`s and `vo.packages` packages (not `std`)
 
 Works in IntelliJ-based IDEs 2026.2 and newer.
 
@@ -21,7 +24,7 @@ Then, in the IDE: **Settings → Plugins → ⚙️ → Install Plugin from Disk
 ## Develop
 
 ```sh
-./gradlew test     # lexer and editor tests
+./gradlew test     # lexer, editor and vo query tests (the last run ../volang/bin/vo, or $VO, and are skipped without it)
 ./gradlew runIde   # a sandbox IDE with the plugin installed
 ```
 
@@ -29,6 +32,7 @@ Then, in the IDE: **Settings → Plugins → ⚙️ → Install Plugin from Disk
 |---|---|
 | `src/main/kotlin/volang/Vo.kt` | `.vo` file type, lexer, highlighter, commenter, brace matcher, quote handler |
 | `src/main/kotlin/volang/VoNavigation.kt` | Go to declaration (`Ctrl+click`) |
+| `src/main/kotlin/volang/VoQuery.kt` | Runs `vo query type-at`/`refs`; type on hover; the vo settings page |
 | `src/main/kotlin/volang/VoEffects.kt` | `vo.effects` file type, lexer and highlighter |
 | `src/main/kotlin/volang/VoPackages.kt` | `vo.packages` file type, lexer and highlighter |
 | `src/main/resources/colorSchemes/VoNordDark.xml` | Nord colors for dark themes |
