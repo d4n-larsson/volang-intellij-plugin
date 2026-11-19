@@ -5,6 +5,15 @@ import com.google.gson.JsonParser
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.lang.documentation.AbstractDocumentationProvider
+import com.intellij.lang.documentation.DocumentationMarkup.CONTENT_END
+import com.intellij.lang.documentation.DocumentationMarkup.CONTENT_START
+import com.intellij.lang.documentation.DocumentationMarkup.DEFINITION_END
+import com.intellij.lang.documentation.DocumentationMarkup.DEFINITION_START
+import com.intellij.lang.documentation.DocumentationMarkup.SECTIONS_END
+import com.intellij.lang.documentation.DocumentationMarkup.SECTIONS_START
+import com.intellij.lang.documentation.DocumentationMarkup.SECTION_END
+import com.intellij.lang.documentation.DocumentationMarkup.SECTION_HEADER_START
+import com.intellij.lang.documentation.DocumentationMarkup.SECTION_SEPARATOR
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.Editor
@@ -54,8 +63,15 @@ data class VoPos(val file: VirtualFile, val offset: Int, val line: Int) {
     fun element(project: Project): PsiElement? = PsiManager.getInstance(project).findFile(file)?.findElementAt(offset)
 }
 
-/** What `vo query type-at` says about a position: the name there, its type, its declaration (none for builtins). */
-data class VoTypeAt(val name: String, val type: String, val declaration: VoPos?)
+/**
+ * What `vo query type-at` says about a position: the name there, its type, its declaration (none for builtins
+ * and std, whose files are inside vo) and, for functions, records, variants, fields, cases, builtins and std,
+ * its documentation (spec 023: the `#` lines above the item).
+ */
+data class VoTypeAt(val name: String, val type: String, val declaration: VoPos?, val doc: VoDoc?)
+
+/** The `doc` record: `signature` always; `description` and `example` when the comment has them. */
+data class VoDoc(val signature: String, val description: String?, val example: String?, val module: String?)
 
 /**
  * Answers from `vo query` (spec 006), which follow the checker. Every call returns null when vo cannot answer:
@@ -65,8 +81,11 @@ data class VoTypeAt(val name: String, val type: String, val declaration: VoPos?)
 object VoQuery {
     fun typeAt(file: VirtualFile, offset: Int): VoTypeAt? {
         val o = ask(file, offset, "type-at", "type_at")?.firstOrNull() ?: return null
+        val doc = o.getAsJsonObject("doc")?.let { d ->
+            d.str("signature")?.let { VoDoc(it, d.str("description"), d.str("example"), d.str("module")) }
+        }
         return VoTypeAt(o.str("name") ?: o.str("text") ?: return null, o.str("type") ?: return null,
-            o.getAsJsonObject("declaration")?.let(::pos))
+            o.getAsJsonObject("declaration")?.let(::pos), doc)
     }
 
     /** Every use of what is at offset (a declaration's position also works), without the declaration itself. */
@@ -138,21 +157,46 @@ object VoQuery {
     private fun JsonObject.str(key: String) = get(key)?.takeIf { it.isJsonPrimitive }?.asString
 }
 
-/** The type of the name under the mouse or caret, from `vo query type-at`: hover, Ctrl+hover and Ctrl+Q. */
+/**
+ * The name under the mouse or caret, from `vo query type-at`: its signature (or `name: type` for locals and
+ * parameters), description, example and where it is declared. Hover and Ctrl+Q show it all, Ctrl+hover one line.
+ */
 class VoDocumentationProvider : AbstractDocumentationProvider() {
     override fun getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement?, targetOffset: Int) =
         contextElement?.takeIf { file is VoFile && it.node.elementType in NAMES }
 
-    override fun getQuickNavigateInfo(element: PsiElement?, originalElement: PsiElement?) = describe(originalElement ?: element)
-    override fun generateDoc(element: PsiElement?, originalElement: PsiElement?) = describe(originalElement ?: element)
+    override fun getQuickNavigateInfo(element: PsiElement?, originalElement: PsiElement?) = typeAt(originalElement ?: element)?.let { at ->
+        "<code>${esc(definition(at))}</code>" + where(at)?.let { " <i>${esc(it)}</i>" }.orEmpty()
+    }
 
-    private fun describe(e: PsiElement?): String? {
+    override fun generateDoc(element: PsiElement?, originalElement: PsiElement?) = typeAt(originalElement ?: element)?.let { at ->
+        buildString {
+            append(DEFINITION_START, esc(definition(at)), DEFINITION_END)
+            at.doc?.description?.let { append(CONTENT_START, code(esc(it)), CONTENT_END) }
+            append(SECTIONS_START)
+            at.doc?.example?.let { section("Example:", "<code>${esc(it)}</code>") }
+            where(at)?.let { section("Declared in:", esc(it)) }
+            append(SECTIONS_END)
+        }
+    }
+
+    private fun typeAt(e: PsiElement?): VoTypeAt? {
         if (e?.node?.elementType !in NAMES) return null
         val vf = e!!.containingFile?.virtualFile ?: return null
-        val at = VoQuery.typeAt(vf, e.textRange.startOffset) ?: return null
-        val where = at.declaration?.let { " <i>declared at ${StringUtil.escapeXmlEntities(it.file.name)}:${it.line}</i>" }.orEmpty()
-        return "<code>${StringUtil.escapeXmlEntities("${at.name}: ${at.type}")}</code>$where"
+        return VoQuery.typeAt(vf, e.textRange.startOffset)
     }
+
+    private fun definition(at: VoTypeAt) = at.doc?.signature ?: "${at.name}: ${at.type}"
+    private fun where(at: VoTypeAt) = at.declaration?.let { "${it.file.name}:${it.line}" } ?: at.doc?.module
+
+    private fun StringBuilder.section(header: String, body: String) {
+        append(SECTION_HEADER_START, header, SECTION_SEPARATOR, "<p>", body, SECTION_END)
+    }
+
+    private fun esc(s: String) = StringUtil.escapeXmlEntities(s)
+
+    /** `name` in a description as code. */
+    private fun code(s: String) = s.replace(Regex("`([^`]+)`"), "<code>$1</code>")
 }
 
 /** The tokens vo can answer about: names of functions, variables, fields, records and variants. */

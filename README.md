@@ -8,7 +8,7 @@ IntelliJ support for [vo](https://github.com/d4n-larsson/volang), a small static
 - Bracket matching for `()`, `[]`, `{}`, and auto-closing brackets and quotes
 - With the `vo` toolchain (Settings → Tools → vo, or `vo` on the PATH), answers come from `vo query`, so they follow the checker:
   - `Ctrl+click` on any name (function, record, field, parameter, local) goes to its declaration; on a declaration it lists every use
-  - Hovering a name, `Ctrl`+hover or `Ctrl+Q` shows its type, such as `a: int`
+  - Hovering a name or `Ctrl+Q` shows its documentation: the signature (or `a: int` for a local), the `#` comment above its declaration, its example and where it is declared; `Ctrl`+hover shows the signature. This covers the program's functions, records, variants, fields and cases, `std` and builtins (needs vo with spec 023, hover docs)
   - vo reads files from disk, so unsaved vo files are saved first; until then, and without vo or while the program has errors, `Ctrl+click` falls back to finding the `fn`/`record`/`variant` by name, also across `import`s and `vo.packages` packages (not `std`)
 
 Works in IntelliJ-based IDEs 2026.2 and newer.
