@@ -68,8 +68,10 @@ object VoTokens {
         "prop", "requires", "ensures", "export",
     )
     // the effects of docs/reference.md "Effects" (file.read and file.write are two words and a dot)
-    val EFFECTS = setOf("console", "input", "file", "read", "write", "net", "clock", "random", "env", "serve")
-    val TYPES = setOf("int", "float", "bool", "str", "list", "map", "result", "void")
+    val EFFECTS = setOf("console", "input", "file", "read", "write", "delete", "net", "clock", "random", "env", "serve", "process")
+    val TYPES = setOf("int", "float", "bool", "str", "bytes", "list", "map", "result", "void")
+    // items that are words only at the start of an item, after an optional `export` (specs 030, 031): not reserved
+    val ITEMS = setOf("const", "effects")
     // spec 014: types only in a type position and after `new`, otherwise ordinary names
     val COLLECTIONS = setOf("ordered_map", "ordered_set", "priority_queue", "deque")
 }
@@ -108,14 +110,15 @@ class VoLexer : LexerBase() {
             1 -> when {
                 t == VoTokens.LPAREN -> state = 2
                 t == TokenType.WHITE_SPACE || t == VoTokens.COMMENT || t == VoTokens.COMMA || t == VoTokens.DOT -> {}
-                t == VoTokens.TYPE && pos - start == 1 -> {} // an effect parameter (E)
+                t == VoTokens.TYPE && buf[start].isUpperCase() -> {} // an effect parameter (E) or set (Storage)
+                t == VoTokens.OPERATOR && pos - start == 1 && buf[start] == '=' -> {} // `effects Name = ...`
                 (t == VoTokens.IDENT || t == VoTokens.FUNCTION || t == VoTokens.KEYWORD) &&
                     buf.subSequence(start, pos).toString() in VoTokens.EFFECTS -> type = VoTokens.EFFECT
                 else -> state = 0
             }
             2 -> if (t == VoTokens.RPAREN) state = 1
         }
-        if (t == VoTokens.KEYWORD && pos - start == 4 && buf.subSequence(start, pos).toString() == "uses") state = 1
+        if (t == VoTokens.KEYWORD && buf.subSequence(start, pos).toString().let { it == "uses" || it == "effects" }) state = 1
     }
 
     private fun lex() {
@@ -137,6 +140,7 @@ class VoLexer : LexerBase() {
                 val word = buf.subSequence(start, pos).toString()
                 when {
                     word in VoTokens.KEYWORDS -> VoTokens.KEYWORD
+                    word in VoTokens.ITEMS && itemStart() -> VoTokens.KEYWORD
                     word in VoTokens.TYPES || c.isUpperCase() -> VoTokens.TYPE
                     // ponytail: "followed by `[`" stands in for "in a type position", so indexing a variable
                     // named deque (`deque[0]`) also shows as a type; look back at the previous token if that matters
@@ -161,6 +165,19 @@ class VoLexer : LexerBase() {
     }
 
     private fun string() { pos = stringEnd(buf, pos, end) }
+
+    /** Whether the token at start begins a line, or follows an `export` that does. Looks back past startOffset. */
+    private fun itemStart(): Boolean {
+        fun lineStartBefore(i: Int): Boolean {
+            var j = i
+            while (j >= 0 && (buf[j] == ' ' || buf[j] == '\t')) j--
+            return j < 0 || buf[j] == '\n'
+        }
+        var i = start - 1
+        while (i >= 0 && (buf[i] == ' ' || buf[i] == '\t')) i--
+        if (lineStartBefore(i)) return true
+        return i >= 5 && buf.subSequence(i - 5, i + 1).toString() == "export" && lineStartBefore(i - 6)
+    }
 
     private inline fun skip(p: (Char) -> Boolean) { while (pos < end && p(buf[pos])) pos++ }
     private fun at(i: Int) = if (i < end) buf[i] else null

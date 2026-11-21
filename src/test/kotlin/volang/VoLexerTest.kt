@@ -69,6 +69,18 @@ class VoLexerTest {
         lex("let q: priority_queue[int] = new ordered_map[str, deque[int]];\nlet deque = ordered_set();"),
     )
 
+    /** `const` and `effects` are words only at the start of an item (specs 030, 031); an effect set continues a clause. */
+    @Test fun constantsAndEffectSets() = assertEquals(
+        listOf("KEYWORD:const", "IDENT:out_dir", "OPERATOR:=", "STRING:\"out/\"", "SEMICOLON:;",
+            "KEYWORD:export", "KEYWORD:effects", "TYPE:Storage", "OPERATOR:=", "EFFECT:file", "DOT:.", "EFFECT:read",
+            "LPAREN:(", "IDENT:out_dir", "RPAREN:)", "COMMA:,", "EFFECT:process", "LPAREN:(", "STRING:\"git\"", "RPAREN:)", "SEMICOLON:;",
+            "KEYWORD:fn", "FUNCTION:f", "LPAREN:(", "IDENT:b", "OPERATOR::", "TYPE:bytes", "RPAREN:)", "KEYWORD:uses",
+            "TYPE:Storage", "COMMA:,", "EFFECT:file", "DOT:.", "EFFECT:delete", "LBRACE:{",
+            "KEYWORD:let", "IDENT:const", "OPERATOR:=", "IDENT:effects", "SEMICOLON:;"),
+        lex("const out_dir = \"out/\";\nexport effects Storage = file.read(out_dir), process(\"git\");\n" +
+            "fn f(b: bytes) uses Storage, file.delete {\n    let const = effects;"),
+    )
+
     @Test fun stringsAndComments() = assertEquals(
         listOf("COMMENT:# hi \"x\"", "STRING:\"a\\\"b\\\\\"", "SEMICOLON:;", "STRING:\"open", "IDENT:x", "BAD_CHARACTER:@"),
         lex("# hi \"x\"\n\"a\\\"b\\\\\";\n\"open\nx @"),
