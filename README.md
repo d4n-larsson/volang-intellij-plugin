@@ -6,10 +6,12 @@ IntelliJ support for [vo](https://github.com/d4n-larsson/volang), a small static
 - Nord colors by default in dark themes (light themes use the IDE's colors)
 - `Ctrl+/` toggles `#` line comments
 - Bracket matching for `()`, `[]`, `{}`, and auto-closing brackets and quotes
-- With the `vo` toolchain (Settings → Tools → vo, or `vo` on the PATH), answers come from `vo query`, so they follow the checker:
-  - `Ctrl+click` on any name (function, record, field, parameter, local) goes to its declaration; on a declaration it lists every use
-  - Hovering a name or `Ctrl+Q` shows its documentation: the signature (or `a: int` for a local), the `#` comment above its declaration, its example and where it is declared; `Ctrl`+hover shows the signature. This covers the program's functions, records, variants, fields and cases, `std` and builtins (needs vo with spec 023, hover docs)
-  - vo reads files from disk, so unsaved vo files are saved first; until then, and without vo or while the program has errors, `Ctrl+click` falls back to finding the `fn`/`record`/`variant` by name, also across `import`s and `vo.packages` packages (not `std`)
+- With the `vo` toolchain (Settings → Tools → vo, or `vo` on the PATH), the plugin runs `vo lsp`, vo's language server, so everything follows the checker, on unsaved text too:
+  - errors and warnings as you type, with quick fixes (`Alt+Enter`)
+  - hover and `Ctrl+Q`: the signature, documentation comment and example of what is under the cursor
+  - `Ctrl+click` / `Ctrl+B` to the declaration, `Alt+F7` for every use, `Shift+F6` to rename
+  - `Ctrl+Alt+L` formats as `vo fmt` does; the Structure view (`Ctrl+F12`) lists the file's items
+- Without vo, `Ctrl+click` finds the `fn`/`record`/`variant` by name, also across `import`s and `vo.packages` packages (not `std`)
 
 Works in IntelliJ-based IDEs 2026.2 and newer.
 
@@ -24,15 +26,15 @@ Then, in the IDE: **Settings → Plugins → ⚙️ → Install Plugin from Disk
 ## Develop
 
 ```sh
-./gradlew test     # lexer, editor and vo query tests (the last run ../volang/bin/vo, or $VO, and are skipped without it)
+./gradlew test     # lexer, editor, navigation and language server tests
 ./gradlew runIde   # a sandbox IDE with the plugin installed
 ```
 
 | File | Contents |
 |---|---|
 | `src/main/kotlin/volang/Vo.kt` | `.vo` file type, lexer, highlighter, commenter, brace matcher, quote handler |
-| `src/main/kotlin/volang/VoNavigation.kt` | Go to declaration (`Ctrl+click`) |
-| `src/main/kotlin/volang/VoQuery.kt` | Runs `vo query type-at`/`refs`; type on hover; the vo settings page |
+| `src/main/kotlin/volang/VoNavigation.kt` | Go to declaration (`Ctrl+click`) without vo |
+| `src/main/kotlin/volang/VoLsp.kt` | Starts `vo lsp`; the vo settings page |
 | `src/main/kotlin/volang/VoEffects.kt` | `vo.effects` file type, lexer and highlighter |
 | `src/main/kotlin/volang/VoPackages.kt` | `vo.packages` file type, lexer and highlighter |
 | `src/main/resources/colorSchemes/VoNordDark.xml` | Nord colors for dark themes |

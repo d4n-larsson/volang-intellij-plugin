@@ -10,30 +10,22 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.TokenType
 
 /**
- * Ctrl+click on a name goes to its declaration, and on a declaration lists its uses, as `vo query type-at` and
- * `vo query refs` answer. When vo cannot answer (see VoQuery), it falls back to the token-based search: the
- * `fn`/`record`/`variant` with that name in this file or in the file an `import ...name;` loads. That fallback
- * has no scopes, so a local with the same name as a top-level item also jumps there.
+ * Ctrl+click without the vo toolchain: the `fn`/`record`/`variant` with the clicked name in this file or in the
+ * file an `import ...name;` loads. With vo, `vo lsp` answers instead (VoLsp.kt). Token-based, so no scopes: a
+ * local with the same name as a top-level item also jumps there.
  */
 class VoGotoDeclarationHandler : GotoDeclarationHandler {
     override fun getGotoDeclarationTargets(source: PsiElement?, offset: Int, editor: Editor?): Array<PsiElement>? {
         val type = source?.node?.elementType
-        if (source == null || type !in NAMES) return null
+        if (source == null || type !in NAMES || VoSettings.binary() != null) return null
         val file = source.containingFile as? VoFile ?: return null
-        val vf = file.virtualFile
-        val start = source.textRange.startOffset
-        val at = vf?.let { VoQuery.typeAt(it, start) }
-        if (at != null) {
-            val decl = at.declaration ?: return null // a builtin
-            val targets = if (decl.file == vf && decl.offset == start) VoQuery.refs(vf, start).orEmpty() else listOf(decl)
-            return targets.mapNotNull { it.element(file.project) }.toTypedArray().ifEmpty { null }
-        }
         val name = source.text
         val target = declaration(file, name) ?: importedFile(file, name)?.let { declaration(it, name) }
         return target?.let { arrayOf(it) }
     }
 }
 
+private val NAMES = setOf(VoTokens.FUNCTION, VoTokens.IDENT, VoTokens.TYPE)
 private val DECLARES = setOf("fn", "record", "variant")
 
 private fun tokens(file: PsiFile) = generateSequence(file.firstChild) { it.nextSibling }

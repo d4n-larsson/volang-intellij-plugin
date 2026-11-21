@@ -7,6 +7,7 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lsp</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="vo" language="vo" implementationClass="volang.VoFileType" fieldName="INSTANCE" extensions="vo"/>
@@ -21,7 +22,7 @@
         <lang.braceMatcher language="vo" implementationClass="volang.VoBraceMatcher"/>
         <lang.quoteHandler language="vo" implementationClass="volang.VoQuoteHandler"/>
         <gotoDeclarationHandler implementation="volang.VoGotoDeclarationHandler"/>
-        <lang.documentationProvider language="vo" implementationClass="volang.VoDocumentationProvider"/>
+        <platform.lsp.serverSupportProvider implementation="volang.VoLspServerSupportProvider"/>
         <applicationConfigurable parentId="tools" instance="volang.VoConfigurable" id="volang.settings" displayName="vo"/>
     </extensions>
 </idea-plugin>
